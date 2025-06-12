@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick a emoji</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>Pick a emoji</h1>
+    <p>Click any emoji to copy it to your clipboard!</p>
+</header>
+
+<nav class="category-nav">
+    <button data-category="all" class="active">All</button>
+    <button data-category="smileys">Smileys & People</button>
+    <button data-category="animals">Animals & Nature</button>
+    <button data-category="food">Food & Drink</button>
+    <button data-category="activity">Activity</button>
+    <button data-category="travel">Travel & Places</button>
+    <button data-category="objects">Objects</button>
+    <button data-category="symbols">Symbols</button>
+    <button data-category="flags">Flags</button>
+</nav>
+
+<main>
+    <div class="emoji-container" id="emojiContainer"></div>
+</main>
+
+<div id="notification">Copied!</div>
+
+<script>
+    const emojiContainer = document.getElementById('emojiContainer');
+    const notification = document.getElementById('notification');
+    const buttons = document.querySelectorAll('.category-nav button');
+
+    const categories = {
+        smileys: [[0x1F600, 0x1F64F]],
+        animals: [[0x1F400, 0x1F4D3]],
+        food: [[0x1F34E, 0x1F37F]],
+        activity: [[0x1F3A0, 0x1F3FA]],
+        travel: [[0x1F680, 0x1F6FF]],
+        objects: [[0x1F4B0, 0x1F4FC], [0x1F527, 0x1F52F]],
+        symbols: [[0x2600, 0x26FF], [0x2700, 0x27BF], [0x1F300, 0x1F320]],
+        flags: []
+    };
+
+    // Generate Flags using regional indicators 🇦🇨 to 🇿🇼
+    for (let i = 0x1F1E6; i <= 0x1F1FF; i++) {
+        for (let j = 0x1F1E6; j <= 0x1F1FF; j++) {
+            categories.flags.push([i, j]);
+        }
+    }
+
+    function loadEmojis(selected = 'all') {
+        emojiContainer.innerHTML = '';
+
+        if (selected === 'flags') {
+            categories.flags.forEach(([first, second]) => {
+                const emoji = String.fromCodePoint(first) + String.fromCodePoint(second);
+                const span = document.createElement('span');
+                span.className = 'emoji';
+                span.textContent = emoji;
+                span.addEventListener('click', () => {
+                    navigator.clipboard.writeText(emoji).then(() => {
+                        notification.style.opacity = '1';
+                        setTimeout(() => notification.style.opacity = '0', 1500);
+                    });
+                });
+                emojiContainer.appendChild(span);
+            });
+        } else {
+            const loadRange = selected === 'all'
+                ? Object.values(categories).flat()
+                : categories[selected] || [];
+
+            loadRange.forEach(([start, end]) => {
+                for (let i = start; i <= end; i++) {
+                    const emoji = String.fromCodePoint(i);
+                    const span = document.createElement('span');
+                    span.className = 'emoji';
+                    span.textContent = emoji;
+                    span.addEventListener('click', () => {
+                        navigator.clipboard.writeText(emoji).then(() => {
+                            notification.style.opacity = '1';
+                            setTimeout(() => notification.style.opacity = '0', 1500);
+                        });
+                    });
+                    emojiContainer.appendChild(span);
+                }
+            });
+        }
+    }
+
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            loadEmojis(button.dataset.category);
+        });
+    });
+
+    loadEmojis(); // Load all emojis on page load
+</script>
+
+</body>
+</html>
